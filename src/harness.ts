@@ -237,9 +237,10 @@ export async function createTestHarness(
       await result.search.rebuild(result.engine.pages);
     },
 
-    async dispose(): Promise<void> {
-      if (disposed) return;
+    dispose(): Promise<void> {
+      if (disposed) return Promise.resolve();
       disposed = true;
+      return Promise.resolve();
     },
   };
 }
