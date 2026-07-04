@@ -28,5 +28,10 @@
  * @module
  */
 
-export { createTestHarness } from "./harness.ts";
-export type { TestHarness, TestHarnessOptions, FixtureContent } from "./harness.ts";
+// `export *` rather than `export { X } from` — deno_doc (and JSR's doc-coverage
+// check) collapses named re-exports of a symbol whose origin file is itself a
+// separate deno.json entrypoint into an unresolved "reference" node with no
+// JSDoc, even though the origin declaration is fully documented. `export *`
+// re-exports the same named symbols but keeps the full resolved declaration
+// (and its JSDoc) intact.
+export * from "./harness.ts"; // createTestHarness, TestHarness, TestHarnessOptions, FixtureContent
