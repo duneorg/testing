@@ -9,14 +9,14 @@
   "imports": {
     "@std/assert": "jsr:@std/assert@^1",
     "@std/yaml": "jsr:@std/yaml@^1",
-    "@dune/core": "jsr:@dune/core@^0.25",
-    "@dune/core/storage": "jsr:@dune/core@^0.25/storage",
-    "@dune/core/api": "jsr:@dune/core@^0.25/api",
-    "@dune/core/bootstrap": "jsr:@dune/core@^0.25/bootstrap",
-    "@dune/core/engine": "jsr:@dune/core@^0.25/engine",
-    "@dune/core/hooks": "jsr:@dune/core@^0.25/hooks",
-    "@dune/core/search": "jsr:@dune/core@^0.25/search",
-    "@dune/core/config": "jsr:@dune/core@^0.25/config"
+    "@dune/core": "jsr:@dune/core@^0.31",
+    "@dune/core/storage": "jsr:@dune/core@^0.31/storage",
+    "@dune/core/api": "jsr:@dune/core@^0.31/api",
+    "@dune/core/bootstrap": "jsr:@dune/core@^0.31/bootstrap",
+    "@dune/core/engine": "jsr:@dune/core@^0.31/engine",
+    "@dune/core/hooks": "jsr:@dune/core@^0.31/hooks",
+    "@dune/core/search": "jsr:@dune/core@^0.31/search",
+    "@dune/core/config": "jsr:@dune/core@^0.31/config"
   },
   "tasks": {
     "test": "deno test --allow-env --unstable-kv tests/",
