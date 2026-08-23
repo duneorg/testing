@@ -32,7 +32,10 @@ Deno.test("h.fetch — GET /api/pages/:path returns single page", async () => {
 });
 
 Deno.test("h.fetch — GET /api/config/site returns site config", async () => {
-  const h = await createTestHarness({ content: CONTENT, siteTitle: "Fetch Test Site" });
+  const h = await createTestHarness({
+    content: CONTENT,
+    siteTitle: "Fetch Test Site",
+  });
   try {
     const res = await h.fetch("/api/config/site");
     assertEquals(res.status, 200);
@@ -54,7 +57,10 @@ Deno.test("h.fetch — unknown route returns 404", async () => {
 });
 
 Deno.test("h.render — returns response body as text", async () => {
-  const h = await createTestHarness({ content: CONTENT, siteTitle: "Render Test" });
+  const h = await createTestHarness({
+    content: CONTENT,
+    siteTitle: "Render Test",
+  });
   try {
     const body = await h.render("/api/config/site");
     assertStringIncludes(body, "Render Test");

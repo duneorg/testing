@@ -2,7 +2,9 @@
 
 Test harness for [Dune CMS](https://getdune.org) plugins and themes.
 
-Provides `createTestHarness()` — spins up a full in-process Dune instance backed by an in-memory storage adapter. No filesystem access, no running server. Plugins participate in the complete hook chain exactly as in production.
+Provides `createTestHarness()` — spins up a full in-process Dune instance backed
+by an in-memory storage adapter. No filesystem access, no running server.
+Plugins participate in the complete hook chain exactly as in production.
 
 ## Installation
 
@@ -44,27 +46,27 @@ Deno.test("plugin registers a search engine", async () => {
 
 Returns a `TestHarness` with:
 
-| Member | Description |
-|--------|-------------|
-| `engine` | The bootstrapped `DuneEngine` — inspect `engine.pages` for indexed content |
-| `search` | The active `SearchManager` — call `search(q)` and `suggest(p)` directly |
-| `hooks` | The `HookRegistry` — inspect or subscribe to plugin events |
-| `config` | The resolved `DuneConfig` |
-| `storage` | The `MemoryStorageAdapter` pre-populated with fixture files |
-| `fetch(path, init?)` | Send an in-process HTTP request to the content REST API |
-| `render(path, init?)` | `fetch` shorthand returning response body as text |
-| `rebuild()` | Trigger a full content rebuild and search index update |
-| `dispose()` | Tear down the harness — safe to call multiple times |
+| Member                | Description                                                                |
+| --------------------- | -------------------------------------------------------------------------- |
+| `engine`              | The bootstrapped `DuneEngine` — inspect `engine.pages` for indexed content |
+| `search`              | The active `SearchManager` — call `search(q)` and `suggest(p)` directly    |
+| `hooks`               | The `HookRegistry` — inspect or subscribe to plugin events                 |
+| `config`              | The resolved `DuneConfig`                                                  |
+| `storage`             | The `MemoryStorageAdapter` pre-populated with fixture files                |
+| `fetch(path, init?)`  | Send an in-process HTTP request to the content REST API                    |
+| `render(path, init?)` | `fetch` shorthand returning response body as text                          |
+| `rebuild()`           | Trigger a full content rebuild and search index update                     |
+| `dispose()`           | Tear down the harness — safe to call multiple times                        |
 
 ### Options
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `content` | `{}` | Fixture content keyed by path relative to `content/` |
-| `files` | `{}` | Extra files at arbitrary paths (config overrides, flex data, etc.) |
-| `plugins` | `[]` | Plugin instances to register before bootstrap |
-| `siteTitle` | `"Dune Test Site"` | Site title override |
-| `disableAdmin` | `true` | Disable the admin plugin (heavy; skip unless testing admin behavior) |
+| Option         | Default            | Description                                                          |
+| -------------- | ------------------ | -------------------------------------------------------------------- |
+| `content`      | `{}`               | Fixture content keyed by path relative to `content/`                 |
+| `files`        | `{}`               | Extra files at arbitrary paths (config overrides, flex data, etc.)   |
+| `plugins`      | `[]`               | Plugin instances to register before bootstrap                        |
+| `siteTitle`    | `"Dune Test Site"` | Site title override                                                  |
+| `disableAdmin` | `true`             | Disable the admin plugin (heavy; skip unless testing admin behavior) |
 
 ## License
 

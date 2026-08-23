@@ -186,13 +186,15 @@ export async function createTestHarness(
 
   const result = await bootstrap("/dune-test-harness", {
     storage,
-    plugins,      // registered before any hooks fire
+    plugins, // registered before any hooks fire
     buildSearch: true,
     dev: true,
     // Disable admin by default — it tries to create filesystem directories
     // (audit log, session store) that don't exist in the test environment.
-    // deno-lint-ignore no-explicit-any
-    configOverrides: disableAdmin ? { admin: { enabled: false } as any } : undefined,
+    configOverrides: disableAdmin
+      // deno-lint-ignore no-explicit-any
+      ? { admin: { enabled: false } as any }
+      : undefined,
   });
 
   // ── 3. In-process API handler ────────────────────────────────────────────────
