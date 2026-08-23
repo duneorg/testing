@@ -46,7 +46,8 @@ Deno.test("createTestHarness — siteTitle override", async () => {
 Deno.test("createTestHarness — built-in search works on fixture content", async () => {
   const h = await createTestHarness({
     content: {
-      "01.hello/default.md": "---\ntitle: Hello World\n---\nThis is the hello page",
+      "01.hello/default.md":
+        "---\ntitle: Hello World\n---\nThis is the hello page",
     },
   });
   try {

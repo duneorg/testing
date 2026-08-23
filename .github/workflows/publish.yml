@@ -3,7 +3,7 @@ name: Publish to JSR
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   publish:
@@ -11,7 +11,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
-      id-token: write  # required for JSR OIDC auth
+      id-token: write # required for JSR OIDC auth
 
     steps:
       - uses: actions/checkout@v4
