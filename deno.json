@@ -1,6 +1,6 @@
 {
   "name": "@dune/testing",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
@@ -9,14 +9,14 @@
   "imports": {
     "@std/assert": "jsr:@std/assert@^1",
     "@std/yaml": "jsr:@std/yaml@^1",
-    "@dune/core": "jsr:@dune/core@^0.33",
-    "@dune/core/storage": "jsr:@dune/core@^0.33/storage",
-    "@dune/core/api": "jsr:@dune/core@^0.33/api",
-    "@dune/core/bootstrap": "jsr:@dune/core@^0.33/bootstrap",
-    "@dune/core/engine": "jsr:@dune/core@^0.33/engine",
-    "@dune/core/hooks": "jsr:@dune/core@^0.33/hooks",
-    "@dune/core/search": "jsr:@dune/core@^0.33/search",
-    "@dune/core/config": "jsr:@dune/core@^0.33/config"
+    "@dune/core": "jsr:@dune/core@^0.34",
+    "@dune/core/storage": "jsr:@dune/core@^0.34/storage",
+    "@dune/core/api": "jsr:@dune/core@^0.34/api",
+    "@dune/core/bootstrap": "jsr:@dune/core@^0.34/bootstrap",
+    "@dune/core/engine": "jsr:@dune/core@^0.34/engine",
+    "@dune/core/hooks": "jsr:@dune/core@^0.34/hooks",
+    "@dune/core/search": "jsr:@dune/core@^0.34/search",
+    "@dune/core/config": "jsr:@dune/core@^0.34/config"
   },
   "minimumDependencyAge": {
     "age": "P1D",

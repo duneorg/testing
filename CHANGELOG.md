@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [1.0.2] — 2026-08-27
 
 ### Fixed
 
@@ -9,6 +9,10 @@
   exercises the `onSearchEngineCreate` hook with a small inline stub engine, so
   the suite runs identically in a standalone clone, in CI, and in the shared dev
   workspace. `deno test` is now also run in CI.
+- **`@dune/core` pin bumped to `^0.34`.** The previous `^0.33` range didn't
+  cover `@dune/core`'s current version — a site running a newer core would
+  have loaded a second, stale copy just for this package. No behavior change;
+  nothing in this release depends on a 0.34-only export.
 
 ## [1.0.1] — 2026-08-23
 
