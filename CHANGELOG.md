@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- **`tests/harness_test.ts` no longer imports `plugin-orama` via a relative path
+  reaching outside the package.** The search-engine registration test now
+  exercises the `onSearchEngineCreate` hook with a small inline stub engine, so
+  the suite runs identically in a standalone clone, in CI, and in the shared dev
+  workspace. `deno test` is now also run in CI.
+
 ## [1.0.1] — 2026-08-23
 
 ### Fixed
