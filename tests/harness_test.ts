@@ -1,8 +1,67 @@
 import { assertEquals, assertGreater, assertStringIncludes } from "@std/assert";
 import { createTestHarness } from "../src/harness.ts";
 import type { DunePlugin } from "@dune/core/hooks";
-import type { SearchEngineCreateContext } from "@dune/core/search";
-import { createOramaEngine } from "../../plugin-orama/src/engine.ts";
+import type {
+  PageIndex,
+  SearchEngine,
+  SearchEngineCreateContext,
+  SearchResult,
+} from "@dune/core/search";
+
+/**
+ * A minimal in-process `SearchEngine` used only to exercise the harness's
+ * `onSearchEngineCreate` registration path (register + setActiveEngine +
+ * build/rebuild wiring). Real third-party engines such as
+ * `@dune/plugin-orama` carry their own test suites; keeping this stub inline
+ * lets `@dune/testing` stay free of cross-package dependencies so the suite
+ * runs identically in a standalone clone, CI, or the shared dev workspace.
+ */
+function createStubSearchEngine(
+  initialPages: PageIndex[],
+  loadText: (page: PageIndex) => Promise<string>,
+): SearchEngine {
+  let docs: Array<{ page: PageIndex; text: string }> = [];
+
+  async function index(pages: PageIndex[]): Promise<void> {
+    docs = await Promise.all(
+      pages
+        .filter((p) => p.published && p.route)
+        .map(async (p) => ({
+          page: p,
+          text: `${p.title}\n${await loadText(p)}`.toLowerCase(),
+        })),
+    );
+  }
+
+  return {
+    build(): Promise<void> {
+      return index(initialPages);
+    },
+    rebuild(newPages: PageIndex[]): Promise<void> {
+      return index(newPages);
+    },
+    search(query: string, limit = 20): Promise<SearchResult[]> {
+      const q = query.trim().toLowerCase();
+      const hits: SearchResult[] = q
+        ? docs
+          .filter((d) => d.text.includes(q))
+          .slice(0, limit)
+          .map((d) => ({ page: d.page, score: 1, excerpt: "" }))
+        : [];
+      return Promise.resolve(hits);
+    },
+    suggest(prefix: string, limit = 10): Promise<string[]> {
+      const p = prefix.trim().toLowerCase();
+      const out = p
+        ? docs
+          .map((d) => d.page.title)
+          .filter((t) => t.toLowerCase().startsWith(p))
+          .slice(0, limit)
+        : [];
+      return Promise.resolve(out);
+    },
+  };
+}
 
 // ── Basic harness functionality ───────────────────────────────────────────────
 
@@ -84,18 +143,15 @@ Deno.test("createTestHarness — plugin hook fires during bootstrap", async () =
 });
 
 Deno.test("createTestHarness — plugin can register a search engine via hook", async () => {
-  const oramaPlugin: DunePlugin = {
-    name: "orama-test",
+  const searchPlugin: DunePlugin = {
+    name: "custom-search-test",
     version: "0.0.1",
     hooks: {
       onSearchEngineCreate: (ctx: unknown) => {
         const { data } = ctx as { data: SearchEngineCreateContext };
-        const engine = createOramaEngine({}, data.pages, {
-          loadText: data.loadText,
-          injectedRecords: data.injectedRecords,
-        });
-        data.register("orama", engine);
-        data.setActiveEngine("orama");
+        const engine = createStubSearchEngine(data.pages, data.loadText);
+        data.register("stub", engine);
+        data.setActiveEngine("stub");
       },
     },
   };
@@ -104,11 +160,11 @@ Deno.test("createTestHarness — plugin can register a search engine via hook", 
     content: {
       "01.home/default.md": "---\ntitle: Home\n---\nWelcome",
     },
-    plugins: [oramaPlugin],
+    plugins: [searchPlugin],
   });
   try {
-    assertEquals(h.search.activeEngineName(), "orama");
-    assertEquals(h.search.registeredEngineNames().includes("orama"), true);
+    assertEquals(h.search.activeEngineName(), "stub");
+    assertEquals(h.search.registeredEngineNames().includes("stub"), true);
     const results = await h.search.search("welcome");
     assertGreater(results.length, 0);
   } finally {
