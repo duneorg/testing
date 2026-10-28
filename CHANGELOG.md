@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.3] — 2026-10-28
+
+### Fixed
+
+- **`@dune/core` pin bumped to `^0.35`.** The previous `^0.34` range doesn't
+  cover `@dune/core` 0.35 — a site or test suite running it would have loaded a
+  second, stale copy of core just for this package. No behavior change; nothing
+  in this release depends on a 0.35-only export.
+
 ## [1.0.2] — 2026-08-27
 
 ### Fixed
