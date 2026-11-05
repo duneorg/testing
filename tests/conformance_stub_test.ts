@@ -60,4 +60,26 @@ runAdminConformance({
     });
     if (res.status !== 200) throw new Error(`stub edit failed: ${res.status}`);
   },
+  async createPage(app, cookie, { sourcePath, title }) {
+    const admin = admins.get(app)!;
+    const res = await app.request(`${admin.prefix}/pages/create`, {
+      method: "POST",
+      headers: { "content-type": "application/json", cookie },
+      body: JSON.stringify({ sourcePath, title }),
+    });
+    if (res.status !== 200) {
+      throw new Error(`stub create failed: ${res.status}`);
+    }
+  },
+  async deletePage(app, cookie, { sourcePath }) {
+    const admin = admins.get(app)!;
+    const res = await app.request(`${admin.prefix}/pages/delete`, {
+      method: "POST",
+      headers: { "content-type": "application/json", cookie },
+      body: JSON.stringify({ sourcePath }),
+    });
+    if (res.status !== 200) {
+      throw new Error(`stub delete failed: ${res.status}`);
+    }
+  },
 });

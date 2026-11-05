@@ -85,6 +85,25 @@ export interface AdminConformanceDriver {
     edit: { sourcePath: string; content: string },
   ): Promise<void>;
   /**
+   * Optional: create a page through the admin's own routes. `sourcePath` is the
+   * site-relative path of the content file to create. Enables the check that
+   * the writer fires `onPageCreate` once.
+   */
+  createPage?(
+    app: ConformanceApp,
+    cookie: string,
+    page: { sourcePath: string; title: string },
+  ): Promise<void>;
+  /**
+   * Optional: delete an existing page through the admin's own routes.
+   * Enables the check that the writer fires `onPageDelete` once.
+   */
+  deletePage?(
+    app: ConformanceApp,
+    cookie: string,
+    page: { sourcePath: string },
+  ): Promise<void>;
+  /**
    * Optional: the admin's URL prefix, if it mounts `admin.pages` and
    * `admin.routes` contributions from other plugins. Enables those checks.
    */
@@ -97,6 +116,17 @@ const CONTENT = {
 };
 const ABOUT = "/about/";
 const MARKER = "data-dune-field";
+
+/**
+ * An admin may fire a page event after it has answered, so give the first one
+ * a moment to arrive, then a moment more to show it does not fire twice.
+ */
+async function settle(events: unknown[]): Promise<void> {
+  for (let i = 0; i < 40 && events.length === 0; i++) {
+    await new Promise((r) => setTimeout(r, 25));
+  }
+  await new Promise((r) => setTimeout(r, 75));
+}
 
 /** What a probe plugin records for each response core hands it. */
 interface Seen {
@@ -360,16 +390,86 @@ export function adminConformanceChecks(
             await app.readText("content/02.about/default.md"),
             "Edited by conformance",
           );
-          // An admin may fire the event after it has answered, so give it a
-          // moment to arrive, then a moment more to show it does not fire twice.
-          for (let i = 0; i < 40 && updates.length === 0; i++) {
-            await new Promise((r) => setTimeout(r, 25));
-          }
-          await new Promise((r) => setTimeout(r, 75));
+          await settle(updates);
           assertEquals(
             updates.length,
             1,
             "the writer fires onPageUpdate, once",
+          );
+        });
+      },
+    );
+  }
+
+  if (driver.createPage) {
+    t(
+      "creating a page through the admin writes it and fires onPageCreate exactly once",
+      async () => {
+        const created: unknown[] = [];
+        const listener: DunePlugin = {
+          name: "conformance-listener",
+          version: "1.0.0",
+          hooks: { onPageCreate: ({ data }) => void created.push(data) },
+        };
+        await withApp(driver, { extraPlugins: [listener] }, async (app) => {
+          const cookie = await driver.signInEditor(app);
+          await driver.createPage!(app, cookie, {
+            sourcePath: "content/03.fresh/default.md",
+            title: "Fresh",
+          });
+          assertStringIncludes(
+            await app.readText("content/03.fresh/default.md"),
+            "Fresh",
+          );
+          await settle(created);
+          assertEquals(
+            created.length,
+            1,
+            "the writer fires onPageCreate, once",
+          );
+          assertEquals(
+            (created[0] as { sourcePath?: string }).sourcePath,
+            "03.fresh/default.md",
+            "the event carries the path relative to the content directory",
+          );
+        });
+      },
+    );
+  }
+
+  if (driver.deletePage) {
+    t(
+      "deleting a page through the admin removes it and fires onPageDelete exactly once",
+      async () => {
+        const deleted: unknown[] = [];
+        const listener: DunePlugin = {
+          name: "conformance-listener",
+          version: "1.0.0",
+          hooks: { onPageDelete: ({ data }) => void deleted.push(data) },
+        };
+        await withApp(driver, { extraPlugins: [listener] }, async (app) => {
+          const cookie = await driver.signInEditor(app);
+          await driver.deletePage!(app, cookie, {
+            sourcePath: "content/02.about/default.md",
+          });
+          await app.readText("content/02.about/default.md").then(
+            () => {
+              throw new Error(
+                "the page file is still on disk after the delete",
+              );
+            },
+            () => {},
+          );
+          await settle(deleted);
+          assertEquals(
+            deleted.length,
+            1,
+            "the writer fires onPageDelete, once",
+          );
+          assertEquals(
+            (deleted[0] as { sourcePath?: string }).sourcePath,
+            "02.about/default.md",
+            "the event carries the path relative to the content directory",
           );
         });
       },

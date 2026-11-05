@@ -182,3 +182,30 @@ Deno.test("conformance catches an admin whose route cannot tell who the admin is
     find(driverWith("deaf", deaf), "mounted before the admin").run()
   );
 });
+
+Deno.test("conformance catches an admin that writes pages without announcing them", async () => {
+  // The writes land on disk but no event is fired: search indexes, webhooks and
+  // audit plugins would never hear of them.
+  const silent: AdminConformanceDriver = {
+    ...driverWith("silent"),
+    createPage: async (app, _cookie, { sourcePath, title }) => {
+      await app.bootstrap.storage.write(
+        sourcePath,
+        `---\ntitle: ${title}\n---\n`,
+      );
+    },
+    deletePage: async (app, _cookie, { sourcePath }) => {
+      await app.bootstrap.storage.delete(sourcePath);
+    },
+  };
+  await assertRejects(
+    () => find(silent, "creating a page").run(),
+    Error,
+    "fires onPageCreate, once",
+  );
+  await assertRejects(
+    () => find(silent, "deleting a page").run(),
+    Error,
+    "fires onPageDelete, once",
+  );
+});

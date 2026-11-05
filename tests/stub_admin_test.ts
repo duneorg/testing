@@ -237,7 +237,7 @@ Deno.test("stub admin: it edits a page through storage and fires onPageUpdate it
     );
     assertEquals(
       updates,
-      [{ sourcePath: "content/02.about/default.md" }],
+      [{ sourcePath: "02.about/default.md" }],
       "the writer fires the event, exactly once",
     );
 

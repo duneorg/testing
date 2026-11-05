@@ -8,11 +8,12 @@
   conformance suite. A driver says how to build an app with an admin installed
   and how to sign an editor in; the suite checks the contract with core (the
   `auth.session` capability, session recognition and marker scrubbing, the
-  declared session cookie, mount-order independence, `onPageUpdate` from the
-  writer, `admin.pages` / `admin.routes` mounting, and the site serving with no
-  admin). Also `adminConformanceChecks()` to run the checks yourself. Its own
-  tests include deliberately broken admins that it must reject. The stub admin
-  is the reference run.
+  declared session cookie, mount-order independence, `onPageUpdate` /
+  `onPageCreate` / `onPageDelete` from the writer, `admin.pages` /
+  `admin.routes` mounting, and the site serving with no admin). Also
+  `adminConformanceChecks()` to run the checks yourself. Its own tests include
+  deliberately broken admins that it must reject. The stub admin is the
+  reference run.
 - **`createAppHarness()`** (`@dune/testing/app-harness`): the in-memory harness
   plus the full `createDuneApp()` app, with `request(path)` going through plugin
   routes, the response-transform pipeline and the content catch-all.

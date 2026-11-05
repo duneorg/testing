@@ -197,8 +197,19 @@ export function createStubAdmin(options: StubAdminOptions = {}): StubAdmin {
         });
       });
 
-      // The stub is a writer, so it fires the matching event itself.
-      app.post(`${prefix}/pages/edit`, async (fc) => {
+      // The stub is a writer, so it fires the matching event itself. Events
+      // carry the path relative to the content directory, as core reports it.
+      const contentDir = bootstrap.config.system.content.dir;
+      const relative = (p: string) =>
+        p.startsWith(`${contentDir}/`) ? p.slice(contentDir.length + 1) : p;
+
+      /** Authenticated, allowed to update pages, and a well-formed body; else the error response. */
+      const guarded = async (
+        fc: { req: Request },
+        needs: Array<"content" | "title">,
+      ): Promise<
+        Response | { sourcePath: string; content: string; title: string }
+      > => {
         const who = await authenticate(fc.req);
         if (!who.authenticated || !who.user) {
           return json({ error: "Unauthorized" }, 401);
@@ -213,15 +224,51 @@ export function createStubAdmin(options: StubAdminOptions = {}): StubAdmin {
           : false;
         if (!allowed) return json({ error: "Forbidden" }, 403);
         const body = await fc.req.json().catch(() => ({}));
-        if (
-          typeof body.sourcePath !== "string" ||
-          typeof body.content !== "string"
-        ) {
-          return json({ error: "sourcePath and content are required" }, 400);
+        if (typeof body.sourcePath !== "string") {
+          return json({ error: "sourcePath is required" }, 400);
         }
-        await bootstrap.storage.write(body.sourcePath, body.content);
-        await bootstrap.hooks.fire("onPageUpdate", {
+        for (const key of needs) {
+          if (typeof body[key] !== "string") {
+            return json({ error: `${key} is required` }, 400);
+          }
+        }
+        return {
           sourcePath: body.sourcePath,
+          content: body.content ?? "",
+          title: body.title ?? "",
+        };
+      };
+
+      app.post(`${prefix}/pages/edit`, async (fc) => {
+        const g = await guarded(fc, ["content"]);
+        if (g instanceof Response) return g;
+        await bootstrap.storage.write(g.sourcePath, g.content);
+        await bootstrap.hooks.fire("onPageUpdate", {
+          sourcePath: relative(g.sourcePath),
+        });
+        return json({ ok: true });
+      });
+
+      app.post(`${prefix}/pages/create`, async (fc) => {
+        const g = await guarded(fc, ["title"]);
+        if (g instanceof Response) return g;
+        await bootstrap.storage.write(
+          g.sourcePath,
+          `---\ntitle: ${g.title}\n---\n${g.content}`,
+        );
+        await bootstrap.hooks.fire("onPageCreate", {
+          sourcePath: relative(g.sourcePath),
+          title: g.title,
+        });
+        return json({ ok: true });
+      });
+
+      app.post(`${prefix}/pages/delete`, async (fc) => {
+        const g = await guarded(fc, []);
+        if (g instanceof Response) return g;
+        await bootstrap.storage.delete(g.sourcePath);
+        await bootstrap.hooks.fire("onPageDelete", {
+          sourcePath: relative(g.sourcePath),
         });
         return json({ ok: true });
       });
