@@ -158,7 +158,7 @@ export function createStubAdmin(options: StubAdminOptions = {}): StubAdmin {
       }));
     },
 
-    async mount({ app, bootstrap }) {
+    async mount({ app, runtime }) {
       await state!.ready;
       const { users, passwords } = state!;
       const sessions = state!.sessions!;
@@ -189,7 +189,7 @@ export function createStubAdmin(options: StubAdminOptions = {}): StubAdmin {
         const who = await authenticate(fc.req);
         if (!who.authenticated) return json({ error: "Unauthorized" }, 401);
         return json({
-          pages: bootstrap.engine.pages.map((p) => ({
+          pages: runtime.engine.pages.map((p) => ({
             route: p.route,
             title: p.title,
             sourcePath: p.sourcePath,
@@ -199,7 +199,7 @@ export function createStubAdmin(options: StubAdminOptions = {}): StubAdmin {
 
       // The stub is a writer, so it fires the matching event itself. Events
       // carry the path relative to the content directory, as core reports it.
-      const contentDir = bootstrap.config.system.content.dir;
+      const contentDir = runtime.config.system.content.dir;
       const relative = (p: string) =>
         p.startsWith(`${contentDir}/`) ? p.slice(contentDir.length + 1) : p;
 
@@ -214,8 +214,8 @@ export function createStubAdmin(options: StubAdminOptions = {}): StubAdmin {
         if (!who.authenticated || !who.user) {
           return json({ error: "Unauthorized" }, 401);
         }
-        const allowed = bootstrap.authz
-          ? await bootstrap.authz.check({
+        const allowed = runtime.authz
+          ? await runtime.authz.check({
             who: { type: "user", id: who.user.id },
             // deno-lint-ignore no-explicit-any
             canThey: "pages.update" as any,
@@ -242,8 +242,8 @@ export function createStubAdmin(options: StubAdminOptions = {}): StubAdmin {
       app.post(`${prefix}/pages/edit`, async (fc) => {
         const g = await guarded(fc, ["content"]);
         if (g instanceof Response) return g;
-        await bootstrap.storage.write(g.sourcePath, g.content);
-        await bootstrap.hooks.fire("onPageUpdate", {
+        await runtime.storage.write(g.sourcePath, g.content);
+        await runtime.hooks.fire("onPageUpdate", {
           sourcePath: relative(g.sourcePath),
         });
         return json({ ok: true });
@@ -252,11 +252,11 @@ export function createStubAdmin(options: StubAdminOptions = {}): StubAdmin {
       app.post(`${prefix}/pages/create`, async (fc) => {
         const g = await guarded(fc, ["title"]);
         if (g instanceof Response) return g;
-        await bootstrap.storage.write(
+        await runtime.storage.write(
           g.sourcePath,
           `---\ntitle: ${g.title}\n---\n${g.content}`,
         );
-        await bootstrap.hooks.fire("onPageCreate", {
+        await runtime.hooks.fire("onPageCreate", {
           sourcePath: relative(g.sourcePath),
           title: g.title,
         });
@@ -266,8 +266,8 @@ export function createStubAdmin(options: StubAdminOptions = {}): StubAdmin {
       app.post(`${prefix}/pages/delete`, async (fc) => {
         const g = await guarded(fc, []);
         if (g instanceof Response) return g;
-        await bootstrap.storage.delete(g.sourcePath);
-        await bootstrap.hooks.fire("onPageDelete", {
+        await runtime.storage.delete(g.sourcePath);
+        await runtime.hooks.fire("onPageDelete", {
           sourcePath: relative(g.sourcePath),
         });
         return json({ ok: true });
