@@ -360,6 +360,12 @@ export function adminConformanceChecks(
             await app.readText("content/02.about/default.md"),
             "Edited by conformance",
           );
+          // An admin may fire the event after it has answered, so give it a
+          // moment to arrive, then a moment more to show it does not fire twice.
+          for (let i = 0; i < 40 && updates.length === 0; i++) {
+            await new Promise((r) => setTimeout(r, 25));
+          }
+          await new Promise((r) => setTimeout(r, 75));
           assertEquals(
             updates.length,
             1,
