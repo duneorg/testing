@@ -58,6 +58,43 @@ Returns a `TestHarness` with:
 | `rebuild()`           | Trigger a full content rebuild and search index update                     |
 | `dispose()`           | Tear down the harness — safe to call multiple times                        |
 
+### `createAppHarness(options?)`
+
+`createTestHarness()` reaches only the read-only content API.
+`createAppHarness()` also builds the app `dune serve` builds, so a plugin's
+`mount()` routes, the response-transform pipeline and the inline-edit WebSocket
+route are all reachable in process. Same options as `createTestHarness()`; the
+result adds `request(path, init?)`, which goes through the whole app.
+
+```ts
+const h = await createAppHarness({ content, plugins: [myPlugin()] });
+const res = await h.request("/about/");
+```
+
+Folder pages are served at their canonical path with a trailing slash
+(`/about/`); `/about` answers 301.
+
+### `createStubAdmin(options?)`
+
+A minimal replacement admin, built only on the services, capabilities and mount
+API core hands every plugin (it imports nothing from `@dune/plugin-admin`). It
+keeps users and sessions through `services.users` and `services.sessions`,
+provides the `auth.session` and `scheduler.executor` capabilities, seeds authz
+tuples through `services.authz`, and offers its own `POST /stub-admin/login`,
+`GET /stub-admin/pages` and `POST /stub-admin/pages/edit` (which, as the writer,
+fires `onPageUpdate`). Use it to check that your plugin works with an admin that
+is not the built-in one, or to build a conformance test for an admin of your
+own. `declareCookie: false` makes it a provider that does not say which cookie
+carries its session.
+
+```ts
+const admin = createStubAdmin({ users: [{ username: "ed", password: "pw" }] });
+const h = await createAppHarness({
+  content,
+  plugins: [admin.plugin, myPlugin()],
+});
+```
+
 ### Options
 
 | Option         | Default            | Description                                                          |
