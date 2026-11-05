@@ -37,3 +37,4 @@
 export * from "./harness.ts"; // createTestHarness, TestHarness, TestHarnessOptions, FixtureContent
 export * from "./app-harness.ts"; // createAppHarness, AppHarness, AppHarnessOptions
 export * from "./stub-admin.ts"; // createStubAdmin, StubAdmin, StubAdminOptions, StubAdminUser
+export * from "./conformance.ts"; // runAdminConformance, AdminConformanceDriver, ConformanceApp, ConformanceAppOptions

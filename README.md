@@ -95,6 +95,46 @@ const h = await createAppHarness({
 });
 ```
 
+### `runAdminConformance(driver)`
+
+What "meets the contract" means for an admin. Dune does not depend on
+`@dune/plugin-admin`: any plugin that provides the `auth.session` capability is
+the admin as far as core is concerned. Give the suite a driver (how to build an
+app with your admin, how to sign an editor in) and it registers these tests:
+
+- the admin provides `auth.session` (exactly one provider, active);
+- the public site serves, and anonymous visitors are not admins;
+- core's response pipeline recognises an editor session and **only** a real one:
+  no cookie, an unrelated cookie and a forged session cookie get no auth and
+  have editing markers scrubbed; the editor gets `pages.update` and keeps the
+  markers;
+- the cookie the admin declares in `sessionCookies` is the cookie its sign-in
+  sets (otherwise core would never consult it, and its pages could enter the
+  shared cache);
+- an account without editing rights gets no editing chrome (`signInViewer`);
+- a route in a plugin mounted before the admin can still tell who the admin is
+  through `auth.session`;
+- editing a page through the admin writes it and fires `onPageUpdate` exactly
+  once (`editPage`);
+- `admin.pages` and `admin.routes` contributed by another plugin are mounted
+  behind the login, the CSRF check and the permission (`adminPrefix`);
+- with no admin at all the site serves and nothing admin-related exists.
+
+```ts
+runAdminConformance({
+  name: "my-admin",
+  async createApp({ content, extraPlugins, withAdmin }) {
+    /* build the app; register extraPlugins BEFORE your admin */
+  },
+  signInEditor: async (app) => "my_session=abc123", // the Cookie header value of an editor
+});
+```
+
+The optional hooks (`signInViewer`, `editPage`, `adminPrefix`) enable the checks
+that need them. `adminConformanceChecks(driver)` returns the checks without
+registering them, which is how the package tests that the suite rejects a broken
+admin. The stub admin (`createStubAdmin()`) is the reference run.
+
 ### Options
 
 | Option         | Default            | Description                                                          |

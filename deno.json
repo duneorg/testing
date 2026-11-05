@@ -6,7 +6,8 @@
     ".": "./src/mod.ts",
     "./harness": "./src/harness.ts",
     "./app-harness": "./src/app-harness.ts",
-    "./stub-admin": "./src/stub-admin.ts"
+    "./stub-admin": "./src/stub-admin.ts",
+    "./conformance": "./src/conformance.ts"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@^1",
