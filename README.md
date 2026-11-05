@@ -58,6 +58,87 @@ Returns a `TestHarness` with:
 | `rebuild()`           | Trigger a full content rebuild and search index update                     |
 | `dispose()`           | Tear down the harness — safe to call multiple times                        |
 
+### `createAppHarness(options?)`
+
+`createTestHarness()` reaches only the read-only content API.
+`createAppHarness()` also builds the app `dune serve` builds, so a plugin's
+`mount()` routes, the response-transform pipeline and the inline-edit WebSocket
+route are all reachable in process. Same options as `createTestHarness()`; the
+result adds `request(path, init?)`, which goes through the whole app.
+
+```ts
+const h = await createAppHarness({ content, plugins: [myPlugin()] });
+const res = await h.request("/about/");
+```
+
+Folder pages are served at their canonical path with a trailing slash
+(`/about/`); `/about` answers 301.
+
+### `createStubAdmin(options?)`
+
+A minimal replacement admin, built only on the services, capabilities and mount
+API core hands every plugin (it imports nothing from `@dune/plugin-admin`). It
+keeps users and sessions through `services.users` and `services.sessions`,
+provides the `auth.session` and `scheduler.executor` capabilities, seeds authz
+tuples through `services.authz`, and offers its own `POST /stub-admin/login`,
+`GET /stub-admin/pages` and `POST /stub-admin/pages/edit` (which, as the writer,
+fires `onPageUpdate`). Use it to check that your plugin works with an admin that
+is not the built-in one, or to build a conformance test for an admin of your
+own. `declareCookie: false` makes it a provider that does not say which cookie
+carries its session.
+
+```ts
+const admin = createStubAdmin({ users: [{ username: "ed", password: "pw" }] });
+const h = await createAppHarness({
+  content,
+  plugins: [admin.plugin, myPlugin()],
+});
+```
+
+### `runAdminConformance(driver)`
+
+What "meets the contract" means for an admin. Dune does not depend on
+`@dune/plugin-admin`: any plugin that provides the `auth.session` capability is
+the admin as far as core is concerned. Give the suite a driver (how to build an
+app with your admin, how to sign an editor in) and it registers these tests:
+
+- the admin provides `auth.session` (exactly one provider, active);
+- the public site serves, and anonymous visitors are not admins;
+- core's response pipeline recognises an editor session and **only** a real one:
+  no cookie, an unrelated cookie and a forged session cookie get no auth and
+  have editing markers scrubbed; the editor gets `pages.update` and keeps the
+  markers;
+- the cookie the admin declares in `sessionCookies` is the cookie its sign-in
+  sets (otherwise core would never consult it, and its pages could enter the
+  shared cache);
+- an account without editing rights gets no editing chrome (`signInViewer`);
+- a route in a plugin mounted before the admin can still tell who the admin is
+  through `auth.session`;
+- editing a page through the admin writes it and fires `onPageUpdate` exactly
+  once (`editPage`);
+- creating a page fires `onPageCreate` exactly once and deleting one fires
+  `onPageDelete` exactly once, each with the path relative to the content
+  directory (`createPage`, `deletePage`);
+- `admin.pages` and `admin.routes` contributed by another plugin are mounted
+  behind the login, the CSRF check and the permission (`adminPrefix`);
+- with no admin at all the site serves and nothing admin-related exists.
+
+```ts
+runAdminConformance({
+  name: "my-admin",
+  async createApp({ content, extraPlugins, withAdmin }) {
+    /* build the app; register extraPlugins BEFORE your admin */
+  },
+  signInEditor: async (app) => "my_session=abc123", // the Cookie header value of an editor
+});
+```
+
+The optional hooks (`signInViewer`, `editPage`, `createPage`, `deletePage`,
+`adminPrefix`) enable the checks that need them.
+`adminConformanceChecks(driver)` returns the checks without registering them,
+which is how the package tests that the suite rejects a broken admin. The stub
+admin (`createStubAdmin()`) is the reference run.
+
 ### Options
 
 | Option         | Default            | Description                                                          |
