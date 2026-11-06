@@ -95,6 +95,59 @@ Deno.test("conformance catches an admin that provides no auth.session", async ()
   );
 });
 
+/** Run the stub's setup, passing every `provide` through `rewrite` first. */
+const rewriteProvides = (
+  rewrite: (name: string, factory: unknown) => [string, unknown] | null,
+): Breaker =>
+(admin) => ({
+  ...admin,
+  setup(api) {
+    admin.setup!({
+      ...api,
+      capabilities: {
+        ...api.capabilities,
+        provide: (name: string, factory: unknown) => {
+          const out = rewrite(name, factory);
+          if (out) {
+            (api.capabilities.provide as unknown as (
+              n: string,
+              f: unknown,
+            ) => void)(out[0], out[1]);
+          }
+        },
+      } as never,
+    });
+  },
+});
+
+Deno.test("conformance catches an admin that provides no admin.prefix", async () => {
+  const noPrefix = rewriteProvides((name, factory) =>
+    name === "admin.prefix" ? null : [name, factory]
+  );
+  await assertRejects(
+    () =>
+      find(driverWith("no-prefix", noPrefix), "provides admin.prefix").run(),
+    Error,
+    "exactly one admin.prefix provider",
+  );
+});
+
+Deno.test("conformance catches an admin whose prefix core cannot reserve", async () => {
+  for (const bad of ["/stub-admin/", "stub-admin", "/"]) {
+    const broken = rewriteProvides((name, factory) =>
+      name === "admin.prefix"
+        ? [name, () => ({ prefix: bad })]
+        : [name, factory]
+    );
+    await assertRejects(
+      () =>
+        find(driverWith("bad-prefix", broken), "provides admin.prefix").run(),
+      Error,
+      "must start with",
+    );
+  }
+});
+
 Deno.test("conformance catches an admin that declares a cookie its sign-in does not set", async () => {
   const wrongCookie = replaceSession(() => ({
     sessionCookies: ["some_other_cookie"],

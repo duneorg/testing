@@ -119,9 +119,13 @@ app with your admin, how to sign an editor in) and it registers these tests:
 - creating a page fires `onPageCreate` exactly once and deleting one fires
   `onPageDelete` exactly once, each with the path relative to the content
   directory (`createPage`, `deletePage`);
+- the admin provides `admin.prefix` (where it is mounted: one provider, a path
+  starting with `/` and with no trailing slash), and core reserves that prefix
+  against plugin routes;
 - `admin.pages` and `admin.routes` contributed by another plugin are mounted
-  behind the login, the CSRF check and the permission (`adminPrefix`);
-- with no admin at all the site serves and nothing admin-related exists.
+  behind the login, the CSRF check and the permission (`hostsContributions`);
+- with no admin at all the site serves, nothing admin-related exists, and
+  `/admin` is an ordinary path for plugins.
 
 ```ts
 runAdminConformance({
@@ -134,7 +138,8 @@ runAdminConformance({
 ```
 
 The optional hooks (`signInViewer`, `editPage`, `createPage`, `deletePage`,
-`adminPrefix`) enable the checks that need them.
+`hostsContributions`) enable the checks that need them. The admin's prefix is
+not a driver option: the suite reads it from the `admin.prefix` slot.
 `adminConformanceChecks(driver)` returns the checks without registering them,
 which is how the package tests that the suite rejects a broken admin. The stub
 admin (`createStubAdmin()`) is the reference run.

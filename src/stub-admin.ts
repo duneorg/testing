@@ -146,6 +146,7 @@ export function createStubAdmin(options: StubAdminOptions = {}): StubAdmin {
       })();
       state = { users, sessions: null, passwords: services.passwords, ready };
 
+      capabilities.provide("admin.prefix", () => ({ prefix }));
       capabilities.provide("auth.session", () => ({
         ...(declareCookie ? { sessionCookies: [cookieName] } : {}),
         authenticate,
