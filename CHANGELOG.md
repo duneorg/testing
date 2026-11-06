@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+Version 2.0.0 (the conformance driver changed incompatibly).
+
 ### Changed — BREAKING
 
 - **The conformance driver has no `adminPrefix`.** The admin's URL prefix comes
