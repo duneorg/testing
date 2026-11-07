@@ -37,6 +37,17 @@ import type { BootstrapResult } from "@dune/core/bootstrap";
 import type { DunePlugin } from "@dune/core/hooks";
 
 /** What the suite needs from a running app. */
+
+/**
+ * The registry is keyed by string at runtime; `admin.pages` and `admin.routes`
+ * are declared by whichever admin plugin is installed, not by core. The suite
+ * checks the protocol, so it calls them through this untyped view instead of
+ * depending on one admin's types.
+ */
+function untyped(registrar: unknown): { contribute(point: string, item: unknown): void } {
+  return registrar as { contribute(point: string, item: unknown): void };
+}
+
 export interface ConformanceApp {
   /** Send an in-process request through the whole app. */
   request(path: string, init?: RequestInit): Promise<Response>;
@@ -105,7 +116,10 @@ export interface AdminConformanceDriver {
   ): Promise<void>;
   /**
    * Optional: true if the admin mounts `admin.pages` and `admin.routes`
-   * contributions from other plugins. Enables those checks. The admin's URL
+   * contributions from other plugins, the extension points
+   * `@dune/plugin-admin` declares (they are the admin's convention, not part of
+   * core's contract, so an alternative admin chooses whether to host them).
+   * Enables those checks. The admin's URL
    * prefix is not part of the driver: the suite reads it from the
    * `admin.prefix` slot the admin must provide.
    */
@@ -546,7 +560,7 @@ export function adminConformanceChecks(
           version: "1.0.0",
           hooks: {},
           setup(api) {
-            api.capabilities.contribute("admin.pages", {
+            untyped(api.capabilities).contribute("admin.pages", {
               path: "/__conformance",
               label: "Conformance",
               permission: "pages.read",
@@ -585,7 +599,7 @@ export function adminConformanceChecks(
           version: "1.0.0",
           hooks: {},
           setup(api) {
-            api.capabilities.contribute("admin.routes", {
+            untyped(api.capabilities).contribute("admin.routes", {
               method: "POST",
               path: "/api/__conformance/act",
               permission: "pages.update",
