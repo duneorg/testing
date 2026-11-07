@@ -14,6 +14,9 @@ Version 2.0.0 (the conformance driver changed incompatibly).
   provider, a usable prefix), core reserves that prefix against plugin routes,
   and with no admin `/admin` is an ordinary plugin path. The stub admin provides
   `admin.prefix` (`/stub-admin` by default). Needs `@dune/core` 0.36 (dune#123).
+- **`createTestHarness({ disableAdmin })` is gone.** Core no longer loads an
+  admin by itself, so there is nothing to disable; pass an admin in `plugins` to
+  test with one.
 
 ### Added
 

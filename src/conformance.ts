@@ -57,7 +57,7 @@ export interface ConformanceAppOptions {
    * is mount order, and the suite relies on the admin mounting after them.
    */
   extraPlugins: DunePlugin[];
-  /** False: build the app with no admin at all (the built-in one switched off too). */
+  /** False: build the app with no admin at all. */
   withAdmin: boolean;
 }
 

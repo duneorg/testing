@@ -146,13 +146,12 @@ admin (`createStubAdmin()`) is the reference run.
 
 ### Options
 
-| Option         | Default            | Description                                                          |
-| -------------- | ------------------ | -------------------------------------------------------------------- |
-| `content`      | `{}`               | Fixture content keyed by path relative to `content/`                 |
-| `files`        | `{}`               | Extra files at arbitrary paths (config overrides, flex data, etc.)   |
-| `plugins`      | `[]`               | Plugin instances to register before bootstrap                        |
-| `siteTitle`    | `"Dune Test Site"` | Site title override                                                  |
-| `disableAdmin` | `true`             | Disable the admin plugin (heavy; skip unless testing admin behavior) |
+| Option      | Default            | Description                                                        |
+| ----------- | ------------------ | ------------------------------------------------------------------ |
+| `content`   | `{}`               | Fixture content keyed by path relative to `content/`               |
+| `files`     | `{}`               | Extra files at arbitrary paths (config overrides, flex data, etc.) |
+| `plugins`   | `[]`               | Plugin instances to register before bootstrap                      |
+| `siteTitle` | `"Dune Test Site"` | Site title override                                                |
 
 ## License
 
