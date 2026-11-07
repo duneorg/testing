@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+Version 2.0.0 (the conformance driver changed incompatibly).
+
+### Changed — BREAKING
+
+- **The conformance driver has no `adminPrefix`.** The admin's URL prefix comes
+  from the `admin.prefix` capability slot, which an admin must now provide (core
+  no longer assumes `/admin`). `adminPrefix?: string` is replaced by
+  `hostsContributions?: boolean`, which only enables the `admin.pages` /
+  `admin.routes` checks. New checks: the admin provides `admin.prefix` (one
+  provider, a usable prefix), core reserves that prefix against plugin routes,
+  and with no admin `/admin` is an ordinary plugin path. The stub admin provides
+  `admin.prefix` (`/stub-admin` by default). Needs `@dune/core` 0.36 (dune#123).
+- **`createTestHarness({ disableAdmin })` is gone.** Core no longer loads an
+  admin by itself, so there is nothing to disable; pass an admin in `plugins` to
+  test with one.
+
 ### Added
 
 - **`runAdminConformance()`** (`@dune/testing/conformance`): the admin

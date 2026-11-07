@@ -40,7 +40,7 @@ export interface AppHarness extends TestHarness {
 
 /**
  * Options for {@link createAppHarness}: those of {@link createTestHarness}, with
- * the built-in admin disabled unless `disableAdmin: false`.
+ * no admin unless the test passes one in `plugins`.
  */
 export type AppHarnessOptions = TestHarnessOptions;
 

@@ -57,7 +57,7 @@ export interface ConformanceAppOptions {
    * is mount order, and the suite relies on the admin mounting after them.
    */
   extraPlugins: DunePlugin[];
-  /** False: build the app with no admin at all (the built-in one switched off too). */
+  /** False: build the app with no admin at all. */
   withAdmin: boolean;
 }
 
@@ -104,10 +104,12 @@ export interface AdminConformanceDriver {
     page: { sourcePath: string },
   ): Promise<void>;
   /**
-   * Optional: the admin's URL prefix, if it mounts `admin.pages` and
-   * `admin.routes` contributions from other plugins. Enables those checks.
+   * Optional: true if the admin mounts `admin.pages` and `admin.routes`
+   * contributions from other plugins. Enables those checks. The admin's URL
+   * prefix is not part of the driver: the suite reads it from the
+   * `admin.prefix` slot the admin must provide.
    */
-  adminPrefix?: string;
+  hostsContributions?: boolean;
 }
 
 const CONTENT = {
@@ -166,6 +168,16 @@ function probe() {
   return { plugin, seen };
 }
 
+/** Build an app just to read the prefix the admin provides. */
+async function withPrefix(driver: AdminConformanceDriver): Promise<string> {
+  let prefix = "";
+  await withApp(driver, {}, (app) => {
+    prefix = adminPrefixOf(app);
+    return Promise.resolve();
+  });
+  return prefix;
+}
+
 async function withApp(
   driver: AdminConformanceDriver,
   options: Partial<ConformanceAppOptions>,
@@ -182,6 +194,13 @@ async function withApp(
   } finally {
     await app.dispose();
   }
+}
+
+/** The prefix the admin provides through `admin.prefix`; throws if it provides none. */
+function adminPrefixOf(app: ConformanceApp): string {
+  const slot = app.bootstrap.capabilities.get("admin.prefix");
+  assertExists(slot, "no plugin provides admin.prefix");
+  return slot.prefix;
 }
 
 const cookieNames = (cookie: string) =>
@@ -225,6 +244,48 @@ export function adminConformanceChecks(
         );
         return Promise.resolve();
       }),
+  );
+
+  t(
+    "provides admin.prefix: a path prefix core can reserve, from exactly one provider",
+    () =>
+      withApp(driver, {}, (app) => {
+        const providers = app.bootstrap.capabilities.providers();
+        const slot = providers.filter((p) => p.name === "admin.prefix");
+        assertEquals(slot.length, 1, "exactly one admin.prefix provider");
+        assertEquals(slot[0].status, "active");
+        const prefix = adminPrefixOf(app);
+        assertEquals(
+          prefix.length > 1 && prefix.startsWith("/") && !prefix.endsWith("/"),
+          true,
+          `"${prefix}" must start with "/" and have no trailing slash`,
+        );
+        return Promise.resolve();
+      }),
+  );
+
+  t(
+    "core reserves the admin prefix: a plugin public route under it is refused",
+    async () => {
+      const prefix = await withPrefix(driver);
+      const squatter: DunePlugin = {
+        name: "conformance-squatter",
+        version: "1.0.0",
+        hooks: {},
+        publicRoutes: [{
+          path: `${prefix}/__conformance-squat`,
+          handler: () => new Response("squatted"),
+        }],
+      };
+      await withApp(driver, { extraPlugins: [squatter] }, async (app) => {
+        const res = await app.request(`${prefix}/__conformance-squat`);
+        assertEquals(
+          (await res.text()).includes("squatted"),
+          false,
+          "a plugin route answered inside the admin's prefix",
+        );
+      });
+    },
   );
 
   t(
@@ -476,9 +537,7 @@ export function adminConformanceChecks(
     );
   }
 
-  if (driver.adminPrefix) {
-    const prefix = driver.adminPrefix;
-
+  if (driver.hostsContributions) {
     t(
       "admin.pages from another plugin are mounted behind the admin's login",
       async () => {
@@ -496,6 +555,7 @@ export function adminConformanceChecks(
           },
         };
         await withApp(driver, { extraPlugins: [contributor] }, async (app) => {
+          const prefix = adminPrefixOf(app);
           const cookie = await driver.signInEditor(app);
           const anonymous = await app.request(`${prefix}/__conformance`);
           assertEquals(
@@ -537,6 +597,7 @@ export function adminConformanceChecks(
           },
         };
         await withApp(driver, { extraPlugins: [contributor] }, async (app) => {
+          const prefix = adminPrefixOf(app);
           const cookie = await driver.signInEditor(app);
           const url = `${prefix}/api/__conformance/act`;
           const post = (headers: Record<string, string>) =>
@@ -574,9 +635,34 @@ export function adminConformanceChecks(
       withApp(driver, { withAdmin: false }, async (app) => {
         assertEquals((await app.request("/")).status, 200);
         assertEquals(app.bootstrap.capabilities.get("auth.session"), undefined);
+        assertEquals(app.bootstrap.capabilities.get("admin.prefix"), undefined);
         assertEquals(app.bootstrap.authz, undefined);
         assertEquals((await app.request("/api/inline-edit/ws")).status, 501);
       }),
+  );
+
+  t(
+    "without the admin nothing is reserved: /admin is an ordinary path for plugins",
+    () => {
+      const open: DunePlugin = {
+        name: "conformance-open",
+        version: "1.0.0",
+        hooks: {},
+        publicRoutes: [{
+          path: "/admin/__conformance-open",
+          handler: () => new Response("open"),
+        }],
+      };
+      return withApp(
+        driver,
+        { withAdmin: false, extraPlugins: [open] },
+        async (app) => {
+          const res = await app.request("/admin/__conformance-open");
+          assertEquals(res.status, 200);
+          assertEquals(await res.text(), "open");
+        },
+      );
+    },
   );
 
   return checks;
