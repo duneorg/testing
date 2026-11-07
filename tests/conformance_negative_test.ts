@@ -74,7 +74,7 @@ const find = (driver: AdminConformanceDriver, fragment: string) => {
   return check;
 };
 
-/** Run the stub's own setup, then replace `auth.session` with `override`. */
+/** Run the stub's own setup, then replace `editor.session` with `override`. */
 const replaceSession =
   (override: (cookieName: string) => unknown): Breaker =>
   (admin, { cookieName }) => ({
@@ -82,16 +82,16 @@ const replaceSession =
     setup(api) {
       admin.setup!(api);
       api.capabilities.provide(
-        "auth.session",
+        "editor.session",
         () => override(cookieName) as never,
       );
     },
   });
 
-Deno.test("conformance catches an admin that provides no auth.session", async () => {
+Deno.test("conformance catches an admin that provides no editor.session", async () => {
   const bare: Breaker = (admin) => ({ ...admin, setup: () => {} });
   await assertRejects(() =>
-    find(driverWith("no-session", bare), "provides auth.session").run()
+    find(driverWith("no-session", bare), "provides editor.session").run()
   );
 });
 
@@ -177,7 +177,7 @@ Deno.test("conformance catches an admin that accepts a forged session as the rea
         capabilities: {
           ...api.capabilities,
           provide: (name: string, factory: unknown) => {
-            if (name === "auth.session") {
+            if (name === "editor.session") {
               real = (factory as (ctx: unknown) => typeof real)({});
             } else {
               (api.capabilities.provide as unknown as (
@@ -189,7 +189,7 @@ Deno.test("conformance catches an admin that accepts a forged session as the rea
         } as never,
       });
       let last: unknown;
-      api.capabilities.provide("auth.session", () => ({
+      api.capabilities.provide("editor.session", () => ({
         authenticate: async (req: Request) => {
           const r = await real.authenticate(req);
           if (r.authenticated) {

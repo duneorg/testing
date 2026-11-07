@@ -74,12 +74,12 @@ Deno.test("stub admin: the public site serves with it installed, and core sees w
     const providers = Object.fromEntries(
       h.bootstrap.capabilities.providers().map((p) => [p.name, p]),
     );
-    assertEquals(providers["auth.session"].provider, "stub-admin");
-    assertEquals(providers["auth.session"].status, "active");
+    assertEquals(providers["editor.session"].provider, "stub-admin");
+    assertEquals(providers["editor.session"].status, "active");
     assertEquals(providers["scheduler.executor"].status, "active");
     assertExists(
       h.bootstrap.authz,
-      "core creates authz for any auth.session provider, with admin.enabled false",
+      "core creates authz for any editor.session provider, with admin.enabled false",
     );
   } finally {
     await h.dispose();
@@ -186,7 +186,7 @@ Deno.test("stub admin: a provider that does not declare its cookie is still foun
   });
   try {
     assertEquals(
-      h.bootstrap.capabilities.get("auth.session")?.sessionCookies,
+      h.bootstrap.capabilities.get("editor.session")?.sessionCookies,
       undefined,
     );
     const { cookie } = await login(h, admin.prefix, "ed", "pw");
@@ -275,7 +275,7 @@ Deno.test("without any admin the site still serves, and nothing admin-related ex
   const h = await createAppHarness({ content });
   try {
     assertEquals((await h.request("/")).status, 200);
-    assertEquals(h.bootstrap.capabilities.get("auth.session"), undefined);
+    assertEquals(h.bootstrap.capabilities.get("editor.session"), undefined);
     assertEquals(h.bootstrap.authz, undefined);
     assertEquals((await h.request("/stub-admin/pages")).status, 404);
     assertEquals((await h.request("/api/inline-edit/ws")).status, 501);

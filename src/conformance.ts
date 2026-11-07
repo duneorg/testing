@@ -3,7 +3,7 @@
  * core, without knowing anything else about it.
  *
  * Dune does not depend on `@dune/plugin-admin`: any plugin that provides the
- * `auth.session` capability is "the admin" as far as core is concerned. This
+ * `editor.session` capability is "the admin" as far as core is concerned. This
  * suite is what "meets the contract" means. Hand it a *driver* that says how to
  * build an app with your admin installed and how to sign an editor in; it
  * registers the tests.
@@ -226,21 +226,21 @@ export function adminConformanceChecks(
     checks.push({ name: `conformance [${driver.name}]: ${name}`, run });
 
   t(
-    "provides auth.session, the capability that makes it the admin",
+    "provides editor.session, the capability that makes it the admin",
     () =>
       withApp(driver, {}, (app) => {
         const providers = app.bootstrap.capabilities.providers();
-        const session = providers.find((p) => p.name === "auth.session");
-        assertExists(session, "no plugin provides auth.session");
+        const session = providers.find((p) => p.name === "editor.session");
+        assertExists(session, "no plugin provides editor.session");
         assertEquals(
           session.status,
           "active",
-          "the auth.session factory did not produce a provider",
+          "the editor.session factory did not produce a provider",
         );
         assertEquals(
-          providers.filter((p) => p.name === "auth.session").length,
+          providers.filter((p) => p.name === "editor.session").length,
           1,
-          "exactly one auth.session provider",
+          "exactly one editor.session provider",
         );
         return Promise.resolve();
       }),
@@ -296,7 +296,7 @@ export function adminConformanceChecks(
         assertEquals(home.status, 200);
         assertStringIncludes(await home.text(), "<title>Home");
 
-        const auth = app.bootstrap.capabilities.get("auth.session")!;
+        const auth = app.bootstrap.capabilities.get("editor.session")!;
         const anonymous = await auth.authenticate(
           new Request("http://localhost:8000/"),
         );
@@ -358,7 +358,7 @@ export function adminConformanceChecks(
     "the cookie it declares is the cookie its sign-in sets",
     () =>
       withApp(driver, {}, async (app) => {
-        const declared = app.bootstrap.capabilities.get("auth.session")
+        const declared = app.bootstrap.capabilities.get("editor.session")
           ?.sessionCookies;
         if (!declared) return; // undeclared is allowed: core then tries every request that has cookies
         const cookie = await driver.signInEditor(app);
@@ -407,7 +407,7 @@ export function adminConformanceChecks(
         hooks: {},
         mount({ app, capabilities }) {
           app.get("/__conformance/who", async (fc) => {
-            const result = await capabilities.get("auth.session")?.authenticate(
+            const result = await capabilities.get("editor.session")?.authenticate(
               fc.req,
             );
             return new Response(result?.authenticated ? "admin" : "anonymous");
@@ -634,7 +634,7 @@ export function adminConformanceChecks(
     () =>
       withApp(driver, { withAdmin: false }, async (app) => {
         assertEquals((await app.request("/")).status, 200);
-        assertEquals(app.bootstrap.capabilities.get("auth.session"), undefined);
+        assertEquals(app.bootstrap.capabilities.get("editor.session"), undefined);
         assertEquals(app.bootstrap.capabilities.get("admin.prefix"), undefined);
         assertEquals(app.bootstrap.authz, undefined);
         assertEquals((await app.request("/api/inline-edit/ws")).status, 501);

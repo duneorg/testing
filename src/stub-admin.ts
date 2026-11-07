@@ -4,7 +4,7 @@
  *
  * It implements just enough of an admin to exercise the plugin contract: it
  * authenticates users and keeps sessions through core's injected services,
- * provides the `auth.session` and `scheduler.executor` capabilities, seeds
+ * provides the `editor.session` and `scheduler.executor` capabilities, seeds
  * authorisation tuples through `services.authz`, and offers a login, a page
  * listing and a page edit route of its own. It imports nothing from
  * `@dune/plugin-admin`; everything it needs arrives through `PluginApi` and
@@ -147,7 +147,7 @@ export function createStubAdmin(options: StubAdminOptions = {}): StubAdmin {
       state = { users, sessions: null, passwords: services.passwords, ready };
 
       capabilities.provide("admin.prefix", () => ({ prefix }));
-      capabilities.provide("auth.session", () => ({
+      capabilities.provide("editor.session", () => ({
         ...(declareCookie ? { sessionCookies: [cookieName] } : {}),
         authenticate,
       }));

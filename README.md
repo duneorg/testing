@@ -79,7 +79,7 @@ Folder pages are served at their canonical path with a trailing slash
 A minimal replacement admin, built only on the services, capabilities and mount
 API core hands every plugin (it imports nothing from `@dune/plugin-admin`). It
 keeps users and sessions through `services.users` and `services.sessions`,
-provides the `auth.session` and `scheduler.executor` capabilities, seeds authz
+provides the `editor.session` and `scheduler.executor` capabilities, seeds authz
 tuples through `services.authz`, and offers its own `POST /stub-admin/login`,
 `GET /stub-admin/pages` and `POST /stub-admin/pages/edit` (which, as the writer,
 fires `onPageUpdate`). Use it to check that your plugin works with an admin that
@@ -98,11 +98,11 @@ const h = await createAppHarness({
 ### `runAdminConformance(driver)`
 
 What "meets the contract" means for an admin. Dune does not depend on
-`@dune/plugin-admin`: any plugin that provides the `auth.session` capability is
+`@dune/plugin-admin`: any plugin that provides the `editor.session` capability is
 the admin as far as core is concerned. Give the suite a driver (how to build an
 app with your admin, how to sign an editor in) and it registers these tests:
 
-- the admin provides `auth.session` (exactly one provider, active);
+- the admin provides `editor.session` (exactly one provider, active);
 - the public site serves, and anonymous visitors are not admins;
 - core's response pipeline recognises an editor session and **only** a real one:
   no cookie, an unrelated cookie and a forged session cookie get no auth and
@@ -113,7 +113,7 @@ app with your admin, how to sign an editor in) and it registers these tests:
   shared cache);
 - an account without editing rights gets no editing chrome (`signInViewer`);
 - a route in a plugin mounted before the admin can still tell who the admin is
-  through `auth.session`;
+  through `editor.session`;
 - editing a page through the admin writes it and fires `onPageUpdate` exactly
   once (`editPage`);
 - creating a page fires `onPageCreate` exactly once and deleting one fires
