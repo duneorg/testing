@@ -220,7 +220,7 @@ export function createStubAdmin(options: StubAdminOptions = {}): StubAdmin {
             who: { type: "user", id: who.user.id },
             // deno-lint-ignore no-explicit-any
             canThey: "pages.update" as any,
-            onWhat: { type: "app", id: "admin" },
+            onWhat: { type: "app", id: "site" },
           })
           : false;
         if (!allowed) return json({ error: "Forbidden" }, 403);
