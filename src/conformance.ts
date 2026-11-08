@@ -35,18 +35,18 @@
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import type { BootstrapResult } from "@dune/core/bootstrap";
 import type { DunePlugin } from "@dune/core/hooks";
+import { type CapabilityKey, capabilityKey } from "@dune/core/plugin-api";
 
 /** What the suite needs from a running app. */
 
 /**
- * The registry is keyed by string at runtime; `admin.pages` and `admin.routes`
- * are declared by whichever admin plugin is installed, not by core. The suite
- * checks the protocol, so it calls them through this untyped view instead of
- * depending on one admin's types.
+ * `admin.pages` and `admin.routes` are declared by whichever admin plugin is
+ * installed, not by core. The suite checks the protocol, so it recreates the
+ * keys from their documented names (one name is one capability) instead of
+ * depending on one admin's package.
  */
-function untyped(registrar: unknown): { contribute(point: string, item: unknown): void } {
-  return registrar as { contribute(point: string, item: unknown): void };
-}
+const ADMIN_PAGES: CapabilityKey<unknown> = capabilityKey("admin.pages");
+const ADMIN_ROUTES: CapabilityKey<unknown> = capabilityKey("admin.routes");
 
 export interface ConformanceApp {
   /** Send an in-process request through the whole app. */
@@ -560,7 +560,7 @@ export function adminConformanceChecks(
           version: "1.0.0",
           hooks: {},
           setup(api) {
-            untyped(api.capabilities).contribute("admin.pages", {
+            api.capabilities.contribute(ADMIN_PAGES, {
               path: "/__conformance",
               label: "Conformance",
               permission: "pages.read",
@@ -599,7 +599,7 @@ export function adminConformanceChecks(
           version: "1.0.0",
           hooks: {},
           setup(api) {
-            untyped(api.capabilities).contribute("admin.routes", {
+            api.capabilities.contribute(ADMIN_ROUTES, {
               method: "POST",
               path: "/api/__conformance/act",
               permission: "pages.update",
