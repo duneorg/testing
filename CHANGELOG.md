@@ -2,7 +2,9 @@
 
 ## [Unreleased]
 
-Version 2.0.0 (the conformance driver changed incompatibly).
+## [2.0.0] — 2026-11-10
+
+The conformance driver changed incompatibly.
 
 ### Changed — BREAKING
 
