@@ -6,10 +6,11 @@ Version 2.0.0 (the conformance driver changed incompatibly).
 
 ### Changed — BREAKING
 
-- **`admin.pages` / `admin.routes` are no longer core's keys (#127).** They are the extension
-  points `@dune/plugin-admin` declares, so `hostsContributions` now means "this admin hosts the
-  admin plugin's extension points" and the suite reaches them through an untyped view of the
-  registry instead of depending on one admin's types.
+- **`admin.pages` / `admin.routes` are no longer core's keys (#127).** They are
+  the extension points `@dune/plugin-admin` declares, so `hostsContributions`
+  now means "this admin hosts the admin plugin's extension points" and the suite
+  reaches them through an untyped view of the registry instead of depending on
+  one admin's types.
 - **The conformance driver has no `adminPrefix`.** The admin's URL prefix comes
   from the `admin.prefix` capability slot, which an admin must now provide (core
   no longer assumes `/admin`). `adminPrefix?: string` is replaced by
