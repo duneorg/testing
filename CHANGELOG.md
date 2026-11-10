@@ -1,5 +1,53 @@
 # Changelog
 
+## [Unreleased]
+
+## [2.0.0] — 2026-11-10
+
+The conformance driver changed incompatibly.
+
+### Changed — BREAKING
+
+- **`admin.pages` / `admin.routes` are no longer core's keys (#127).** They are
+  the extension points `@dune/plugin-admin` declares, so `hostsContributions`
+  now means "this admin hosts the admin plugin's extension points" and the suite
+  reaches them through an untyped view of the registry instead of depending on
+  one admin's types.
+- **The conformance driver has no `adminPrefix`.** The admin's URL prefix comes
+  from the `admin.prefix` capability slot, which an admin must now provide (core
+  no longer assumes `/admin`). `adminPrefix?: string` is replaced by
+  `hostsContributions?: boolean`, which only enables the `admin.pages` /
+  `admin.routes` checks. New checks: the admin provides `admin.prefix` (one
+  provider, a usable prefix), core reserves that prefix against plugin routes,
+  and with no admin `/admin` is an ordinary plugin path. The stub admin provides
+  `admin.prefix` (`/stub-admin` by default). Needs `@dune/core` 0.36 (dune#123).
+- **`createTestHarness({ disableAdmin })` is gone.** Core no longer loads an
+  admin by itself, so there is nothing to disable; pass an admin in `plugins` to
+  test with one.
+
+### Added
+
+- **`runAdminConformance()`** (`@dune/testing/conformance`): the admin
+  conformance suite. A driver says how to build an app with an admin installed
+  and how to sign an editor in; the suite checks the contract with core (the
+  `editor.session` capability, session recognition and marker scrubbing, the
+  declared session cookie, mount-order independence, `onPageUpdate` /
+  `onPageCreate` / `onPageDelete` from the writer, `admin.pages` /
+  `admin.routes` mounting, and the site serving with no admin). Also
+  `adminConformanceChecks()` to run the checks yourself. Its own tests include
+  deliberately broken admins that it must reject. The stub admin is the
+  reference run.
+- **`createAppHarness()`** (`@dune/testing/app-harness`): the in-memory harness
+  plus the full `createDuneApp()` app, with `request(path)` going through plugin
+  routes, the response-transform pipeline and the content catch-all.
+- **`createStubAdmin()`** (`@dune/testing/stub-admin`): a minimal replacement
+  admin built only on core's injected services, capabilities and mount API. It
+  proves Dune does not depend on `@dune/plugin-admin`: its tests cover login and
+  sessions, `editor.session` recognised by core's transform pipeline (and only
+  its own cookie), marker scrubbing, a page edit that fires `onPageUpdate`, a
+  role without edit rights, and a site with no admin at all. Needs `@dune/core`
+  0.36 (duneorg/dune#97); version bump and the `^0.36` pin are release work.
+
 ## [1.0.3] — 2026-10-28
 
 ### Fixed

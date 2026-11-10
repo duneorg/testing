@@ -79,11 +79,6 @@ export interface TestHarnessOptions {
    * Site title override. Defaults to `"Dune Test Site"`.
    */
   siteTitle?: string;
-  /**
-   * When true, disables the built-in admin plugin.
-   * Defaults to true (admin is heavy; disable unless testing admin behavior).
-   */
-  disableAdmin?: boolean;
 }
 
 /** A fully bootstrapped in-memory Dune instance for testing. */
@@ -153,7 +148,6 @@ export async function createTestHarness(
     files = {},
     plugins = [],
     siteTitle = "Dune Test Site",
-    disableAdmin = true,
   } = options;
 
   // ── 1. In-memory storage ────────────────────────────────────────────────────
@@ -189,12 +183,8 @@ export async function createTestHarness(
     plugins, // registered before any hooks fire
     buildSearch: true,
     dev: true,
-    // Disable admin by default — it tries to create filesystem directories
-    // (audit log, session store) that don't exist in the test environment.
-    configOverrides: disableAdmin
-      // deno-lint-ignore no-explicit-any
-      ? { admin: { enabled: false } as any }
-      : undefined,
+    // No admin: core loads only the plugins passed here, so a test that wants
+    // one lists it in `plugins`.
   });
 
   // ── 3. In-process API handler ────────────────────────────────────────────────

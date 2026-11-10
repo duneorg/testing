@@ -58,15 +58,100 @@ Returns a `TestHarness` with:
 | `rebuild()`           | Trigger a full content rebuild and search index update                     |
 | `dispose()`           | Tear down the harness — safe to call multiple times                        |
 
+### `createAppHarness(options?)`
+
+`createTestHarness()` reaches only the read-only content API.
+`createAppHarness()` also builds the app `dune serve` builds, so a plugin's
+`mount()` routes, the response-transform pipeline and the inline-edit WebSocket
+route are all reachable in process. Same options as `createTestHarness()`; the
+result adds `request(path, init?)`, which goes through the whole app.
+
+```ts
+const h = await createAppHarness({ content, plugins: [myPlugin()] });
+const res = await h.request("/about/");
+```
+
+Folder pages are served at their canonical path with a trailing slash
+(`/about/`); `/about` answers 301.
+
+### `createStubAdmin(options?)`
+
+A minimal replacement admin, built only on the services, capabilities and mount
+API core hands every plugin (it imports nothing from `@dune/plugin-admin`). It
+keeps users and sessions through `services.users` and `services.sessions`,
+provides the `editor.session` and `scheduler.executor` capabilities, seeds authz
+tuples through `services.authz`, and offers its own `POST /stub-admin/login`,
+`GET /stub-admin/pages` and `POST /stub-admin/pages/edit` (which, as the writer,
+fires `onPageUpdate`). Use it to check that your plugin works with an admin that
+is not the built-in one, or to build a conformance test for an admin of your
+own. `declareCookie: false` makes it a provider that does not say which cookie
+carries its session.
+
+```ts
+const admin = createStubAdmin({ users: [{ username: "ed", password: "pw" }] });
+const h = await createAppHarness({
+  content,
+  plugins: [admin.plugin, myPlugin()],
+});
+```
+
+### `runAdminConformance(driver)`
+
+What "meets the contract" means for an admin. Dune does not depend on
+`@dune/plugin-admin`: any plugin that provides the `editor.session` capability
+is the admin as far as core is concerned. Give the suite a driver (how to build
+an app with your admin, how to sign an editor in) and it registers these tests:
+
+- the admin provides `editor.session` (exactly one provider, active);
+- the public site serves, and anonymous visitors are not admins;
+- core's response pipeline recognises an editor session and **only** a real one:
+  no cookie, an unrelated cookie and a forged session cookie get no auth and
+  have editing markers scrubbed; the editor gets `pages.update` and keeps the
+  markers;
+- the cookie the admin declares in `sessionCookies` is the cookie its sign-in
+  sets (otherwise core would never consult it, and its pages could enter the
+  shared cache);
+- an account without editing rights gets no editing chrome (`signInViewer`);
+- a route in a plugin mounted before the admin can still tell who the admin is
+  through `editor.session`;
+- editing a page through the admin writes it and fires `onPageUpdate` exactly
+  once (`editPage`);
+- creating a page fires `onPageCreate` exactly once and deleting one fires
+  `onPageDelete` exactly once, each with the path relative to the content
+  directory (`createPage`, `deletePage`);
+- the admin provides `admin.prefix` (where it is mounted: one provider, a path
+  starting with `/` and with no trailing slash), and core reserves that prefix
+  against plugin routes;
+- `admin.pages` and `admin.routes` contributed by another plugin are mounted
+  behind the login, the CSRF check and the permission (`hostsContributions`);
+- with no admin at all the site serves, nothing admin-related exists, and
+  `/admin` is an ordinary path for plugins.
+
+```ts
+runAdminConformance({
+  name: "my-admin",
+  async createApp({ content, extraPlugins, withAdmin }) {
+    /* build the app; register extraPlugins BEFORE your admin */
+  },
+  signInEditor: async (app) => "my_session=abc123", // the Cookie header value of an editor
+});
+```
+
+The optional hooks (`signInViewer`, `editPage`, `createPage`, `deletePage`,
+`hostsContributions`) enable the checks that need them. The admin's prefix is
+not a driver option: the suite reads it from the `admin.prefix` slot.
+`adminConformanceChecks(driver)` returns the checks without registering them,
+which is how the package tests that the suite rejects a broken admin. The stub
+admin (`createStubAdmin()`) is the reference run.
+
 ### Options
 
-| Option         | Default            | Description                                                          |
-| -------------- | ------------------ | -------------------------------------------------------------------- |
-| `content`      | `{}`               | Fixture content keyed by path relative to `content/`                 |
-| `files`        | `{}`               | Extra files at arbitrary paths (config overrides, flex data, etc.)   |
-| `plugins`      | `[]`               | Plugin instances to register before bootstrap                        |
-| `siteTitle`    | `"Dune Test Site"` | Site title override                                                  |
-| `disableAdmin` | `true`             | Disable the admin plugin (heavy; skip unless testing admin behavior) |
+| Option      | Default            | Description                                                        |
+| ----------- | ------------------ | ------------------------------------------------------------------ |
+| `content`   | `{}`               | Fixture content keyed by path relative to `content/`               |
+| `files`     | `{}`               | Extra files at arbitrary paths (config overrides, flex data, etc.) |
+| `plugins`   | `[]`               | Plugin instances to register before bootstrap                      |
+| `siteTitle` | `"Dune Test Site"` | Site title override                                                |
 
 ## License
 
