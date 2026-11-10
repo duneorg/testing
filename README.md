@@ -98,9 +98,9 @@ const h = await createAppHarness({
 ### `runAdminConformance(driver)`
 
 What "meets the contract" means for an admin. Dune does not depend on
-`@dune/plugin-admin`: any plugin that provides the `editor.session` capability is
-the admin as far as core is concerned. Give the suite a driver (how to build an
-app with your admin, how to sign an editor in) and it registers these tests:
+`@dune/plugin-admin`: any plugin that provides the `editor.session` capability
+is the admin as far as core is concerned. Give the suite a driver (how to build
+an app with your admin, how to sign an editor in) and it registers these tests:
 
 - the admin provides `editor.session` (exactly one provider, active);
 - the public site serves, and anonymous visitors are not admins;

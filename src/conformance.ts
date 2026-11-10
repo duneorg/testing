@@ -407,9 +407,10 @@ export function adminConformanceChecks(
         hooks: {},
         mount({ app, capabilities }) {
           app.get("/__conformance/who", async (fc) => {
-            const result = await capabilities.get("editor.session")?.authenticate(
-              fc.req,
-            );
+            const result = await capabilities.get("editor.session")
+              ?.authenticate(
+                fc.req,
+              );
             return new Response(result?.authenticated ? "admin" : "anonymous");
           });
         },
@@ -634,7 +635,10 @@ export function adminConformanceChecks(
     () =>
       withApp(driver, { withAdmin: false }, async (app) => {
         assertEquals((await app.request("/")).status, 200);
-        assertEquals(app.bootstrap.capabilities.get("editor.session"), undefined);
+        assertEquals(
+          app.bootstrap.capabilities.get("editor.session"),
+          undefined,
+        );
         assertEquals(app.bootstrap.capabilities.get("admin.prefix"), undefined);
         assertEquals(app.bootstrap.authz, undefined);
         assertEquals((await app.request("/api/inline-edit/ws")).status, 501);
