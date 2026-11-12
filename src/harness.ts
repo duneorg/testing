@@ -34,11 +34,9 @@ import { MemoryStorageAdapter } from "@dune/core/storage";
 import { bootstrap } from "@dune/core/bootstrap";
 import { createApiHandler } from "@dune/core/api";
 import type { BootstrapResult } from "@dune/core/bootstrap";
-import type { DunePlugin } from "@dune/core/hooks";
 import type { DuneEngine } from "@dune/core/engine";
 import type { SearchManager } from "@dune/core/search";
-import type { HookRegistry } from "@dune/core/hooks";
-import type { DuneConfig } from "@dune/core/config";
+import type { DuneConfig, DunePlugin, HookRegistry } from "@dune/plugin-api";
 
 /** Fixture content: path (relative to `content/`) → file body. */
 export type FixtureContent = Record<string, string>;
