@@ -1,6 +1,6 @@
 import { assertEquals, assertGreater, assertStringIncludes } from "@std/assert";
 import { createTestHarness } from "../src/harness.ts";
-import type { DunePlugin } from "@dune/core/hooks";
+import type { DunePlugin } from "@dune/plugin-api";
 import type {
   PageIndex,
   SearchEngine,

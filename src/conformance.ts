@@ -34,8 +34,11 @@
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
 import type { BootstrapResult } from "@dune/core/bootstrap";
-import type { DunePlugin } from "@dune/core/hooks";
-import { type CapabilityKey, capabilityKey } from "@dune/core/plugin-api";
+import {
+  type CapabilityKey,
+  capabilityKey,
+  type DunePlugin,
+} from "@dune/plugin-api";
 
 /** What the suite needs from a running app. */
 

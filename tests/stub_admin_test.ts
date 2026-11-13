@@ -4,7 +4,7 @@
  */
 
 import { assertEquals, assertExists, assertStringIncludes } from "@std/assert";
-import type { DunePlugin } from "@dune/core/hooks";
+import type { DunePlugin } from "@dune/plugin-api";
 import { createAppHarness, createStubAdmin } from "../src/mod.ts";
 
 const content = {

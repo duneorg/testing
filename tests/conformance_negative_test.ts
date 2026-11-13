@@ -5,7 +5,7 @@
  */
 
 import { assertRejects } from "@std/assert";
-import type { DunePlugin } from "@dune/core/hooks";
+import type { DunePlugin } from "@dune/plugin-api";
 import {
   adminConformanceChecks,
   createAppHarness,

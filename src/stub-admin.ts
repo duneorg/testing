@@ -20,9 +20,11 @@
  * @module
  */
 
-import type { DunePlugin } from "@dune/core/hooks";
-import type { ScheduledAction } from "@dune/core/workflow";
-import type { PluginServices } from "@dune/core/plugin-api";
+import type {
+  DunePlugin,
+  PluginServices,
+  ScheduledAction,
+} from "@dune/plugin-api";
 
 type UserStore = ReturnType<PluginServices["users"]["createLocalStore"]>;
 type SessionManager = Awaited<
