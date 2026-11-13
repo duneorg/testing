@@ -2,17 +2,19 @@
 
 ## [Unreleased]
 
-## [3.0.0]
+## [3.0.0] — 2026-11-13
 
 Pairs with `@dune/core` 0.37 and needs it.
 
 ### Changed — BREAKING
 
-- **Needs `@dune/core` 0.37.** The harness boots core, so it keeps a core pin; it is the one first-party package that
-  does. Core 0.37 removed the `hooks`, `config`, `workflow` and `plugin-api` subpaths this package used.
-- **Plugin types come from `@dune/plugin-api` (`^1.2`).** `DunePlugin`, `HookRegistry`, `DuneConfig`, `PluginServices`,
-  `ScheduledAction` and the capability key helpers are imported from the contract package, not from core. A test
-  that passes a plugin to the harness is unaffected.
+- **Needs `@dune/core` 0.37.** The harness boots core, so it keeps a core pin;
+  it is the one first-party package that does. Core 0.37 removed the `hooks`,
+  `config`, `workflow` and `plugin-api` subpaths this package used.
+- **Plugin types come from `@dune/plugin-api` (`^1.2`).** `DunePlugin`,
+  `HookRegistry`, `DuneConfig`, `PluginServices`, `ScheduledAction` and the
+  capability key helpers are imported from the contract package, not from core.
+  A test that passes a plugin to the harness is unaffected.
 
 ## [2.0.0] — 2026-11-10
 
